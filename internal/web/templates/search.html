@@ -1,0 +1,96 @@
+{{define "content"}}{{$d := .Data}}
+<h1>Find INF academic works</h1>
+<p class="lede">Search published TCCs, dissertations and theses by title, keyword, people and research area.</p>
+
+<form class="search card" method="get" action="/" id="search-form" novalidate>
+  <div class="field wide {{if index $d.Errors "q"}}invalid{{end}}">
+    <label for="q">Title or keyword</label>
+    <input id="q" name="q" type="search" value="{{$d.Params.Q}}" placeholder="e.g. machine learning" data-max="{{$d.MaxLen}}">
+    <small class="error" data-for="q">{{index $d.Errors "q"}}</small>
+  </div>
+  <div class="field {{if index $d.Errors "author"}}invalid{{end}}">
+    <label for="author">Author</label>
+    <input id="author" name="author" value="{{$d.Params.Author}}" data-max="{{$d.MaxLen}}">
+    <small class="error" data-for="author">{{index $d.Errors "author"}}</small>
+  </div>
+  <div class="field {{if index $d.Errors "advisor"}}invalid{{end}}">
+    <label for="advisor">Advisor</label>
+    <input id="advisor" name="advisor" value="{{$d.Params.Advisor}}" data-max="{{$d.MaxLen}}">
+    <small class="error" data-for="advisor">{{index $d.Errors "advisor"}}</small>
+  </div>
+  <div class="field {{if index $d.Errors "area"}}invalid{{end}}">
+    <label for="area">Research area</label>
+    <input id="area" name="area" list="areas" value="{{$d.Params.Area}}" data-max="{{$d.MaxLen}}">
+    <datalist id="areas">{{range $d.Areas}}<option value="{{.}}">{{end}}</datalist>
+    <small class="error" data-for="area">{{index $d.Errors "area"}}</small>
+  </div>
+  <div class="field narrow {{if index $d.Errors "year"}}invalid{{end}}">
+    <label for="year">Year</label>
+    <input id="year" name="year" inputmode="numeric" value="{{$d.Params.Year}}" placeholder="YYYY">
+    <small class="error">{{index $d.Errors "year"}}</small>
+  </div>
+  <div class="field {{if index $d.Errors "type"}}invalid{{end}}">
+    <label for="type">Document type</label>
+    <select id="type" name="type">
+      <option value="">Any type</option>
+      {{range workTypes}}<option value="{{.}}" {{if eq (print .) $d.Params.Type}}selected{{end}}>{{typeLabel .}}</option>{{end}}
+    </select>
+    <small class="error">{{index $d.Errors "type"}}</small>
+  </div>
+  <div class="actions">
+    <button class="primary">Search</button>
+    <a href="/" class="button ghost">Clear</a>
+  </div>
+</form>
+
+{{if $d.Failure}}
+  <div class="alert" role="alert"><strong>Search temporarily unavailable.</strong> {{$d.Failure}}</div>
+{{else if $d.Errors}}
+  <div class="alert" role="alert">Please correct the highlighted fields. The search was not run.</div>
+{{else if $d.Searched}}
+  {{if eq $d.Result.Total 0}}
+    <div class="empty">
+      <h2>No results found</h2>
+      <p>No published work matches all active criteria. Try removing a filter or using a broader keyword.</p>
+    </div>
+  {{else}}
+    <p class="count">{{$d.Result.Total}} published work{{if ne $d.Result.Total 1}}s{{end}} · page {{$d.Result.Page}} of {{$d.Result.Pages}}</p>
+    <ol class="results">
+    {{range $d.Result.Works}}
+      <li class="result card">
+        <a class="title" href="/works/{{.ID}}">{{.Title}}</a>
+        <dl class="meta">
+          <div><dt>Author</dt><dd>{{first .Authors}}{{if gt (len .Authors) 1}} et al.{{end}}</dd></div>
+          <div><dt>Year</dt><dd>{{year .Year}}</dd></div>
+          <div><dt>Type</dt><dd>{{typeLabel .Type}}</dd></div>
+          <div><dt>Advisor</dt><dd>{{.Advisor}}</dd></div>
+        </dl>
+        <p class="tags">{{range .Areas}}<span class="tag area">{{.}}</span>{{end}}{{range .Keywords}}<span class="tag">{{.}}</span>{{end}}</p>
+      </li>
+    {{end}}
+    </ol>
+    {{if gt $d.Result.Pages 1}}
+    <nav class="pager" aria-label="Pages">
+      {{if $d.Prev}}<a href="{{$d.Prev}}">← Previous</a>{{end}}
+      {{range $d.Pages}}{{if .Current}}<span aria-current="page">{{.N}}</span>{{else}}<a href="{{.URL}}">{{.N}}</a>{{end}}{{end}}
+      {{if $d.Next}}<a href="{{$d.Next}}">Next →</a>{{end}}
+    </nav>
+    {{end}}
+  {{end}}
+{{end}}
+
+<script>
+// Client-side length check (UC-01 step 3); the server validates again.
+document.getElementById('search-form').addEventListener('submit', function (e) {
+  var bad = false;
+  this.querySelectorAll('[data-max]').forEach(function (el) {
+    var max = +el.dataset.max, msg = el.parentNode.querySelector('.error');
+    var tooLong = Array.from(el.value).length > max;
+    el.parentNode.classList.toggle('invalid', tooLong);
+    msg.textContent = tooLong ? 'Maximum length is ' + max + ' characters (currently ' + Array.from(el.value).length + ').' : '';
+    bad = bad || tooLong;
+  });
+  if (bad) e.preventDefault();
+});
+</script>
+{{end}}

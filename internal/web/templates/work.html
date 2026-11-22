@@ -1,0 +1,61 @@
+{{define "content"}}{{$d := .Data}}{{$w := $d.Work}}
+<p><a href="{{if isRole .User "COORDINATOR"}}/review{{else}}/staff{{end}}">← Back</a></p>
+<div class="heading-row">
+  <h1>{{orDash $w.Title}}</h1>
+  <span class="status s-{{$w.Status}}">{{statusLabel $w.Status}}</span>
+</div>
+<p class="muted">Record #{{$w.ID}} · version {{$w.Version}} · created by {{$w.CreatedBy}} · updated {{date $w.UpdatedAt}}
+{{if eq (print $w.Status) "PUBLISHED"}} · <a href="/works/{{$w.ID}}">public page</a>{{end}}</p>
+
+{{if $d.CanEdit}}<p><a class="button" href="/staff/works/{{$w.ID}}/edit">Edit record</a></p>{{end}}
+{{if and (isRole .User "LIBRARY_WORKER") (eq (print $w.Status) "UNDER_REVIEW")}}<div class="alert info">This record is locked while it waits for a coordinator's decision.</div>{{end}}
+
+<div class="two-col">
+<article class="card">
+  <dl class="grid">
+    <dt>Type</dt><dd>{{if $w.Type}}{{typeLabel $w.Type}}{{else}}—{{end}}</dd>
+    <dt>Year</dt><dd>{{year $w.Year}}</dd>
+    <dt>Authors</dt><dd>{{orDash (join $w.Authors)}}</dd>
+    <dt>Advisor</dt><dd>{{orDash $w.Advisor}}</dd>
+    <dt>Research areas</dt><dd>{{orDash (join $w.Areas)}}</dd>
+    <dt>Keywords</dt><dd>{{orDash (join $w.Keywords)}}</dd>
+    <dt>PDF</dt><dd>{{if $w.HasPDF}}<a href="/staff/works/{{$w.ID}}/document">{{$w.PDFName}}</a>{{else}}—{{end}}</dd>
+    <dt>External URL</dt><dd>{{if $w.ExternalURL}}<a href="{{$w.ExternalURL}}" rel="noopener" target="_blank">{{$w.ExternalURL}}</a>{{else}}—{{end}}</dd>
+    <dt>Shelf</dt><dd>{{orDash $w.ShelfLocation}}</dd>
+    <dt>Contact</dt><dd>{{orDash $w.ContactInfo}}{{if $w.ContactInfo}} <span class="muted">({{if $w.ContactPublic}}public{{else}}not public{{end}})</span>{{end}}</dd>
+  </dl>
+  <h2>Abstract</h2>
+  <p class="abstract">{{orDash $w.Abstract}}</p>
+</article>
+
+<aside>
+  {{if $d.CanModerate}}
+  <form method="post" action="/review/{{$w.ID}}" class="card stack decide">
+    <h2>Decision</h2>
+    <input type="hidden" name="version" value="{{$w.Version}}">
+    <button class="primary" name="decision" value="approve">Approve and publish</button>
+    <div class="field {{if index $d.Errors "reason"}}invalid{{end}}">
+      <label for="reason">Rejection reason <span class="req">*</span></label>
+      <textarea id="reason" name="reason" rows="3" placeholder="Explain what library staff must correct">{{$d.Reason}}</textarea>
+      <small class="error">{{index $d.Errors "reason"}}</small>
+    </div>
+    <button class="danger" name="decision" value="reject">Reject with reason</button>
+  </form>
+  {{end}}
+
+  <section class="card">
+    <h2>Moderation history</h2>
+    {{if $d.Decisions}}<ul class="timeline">
+      {{range $d.Decisions}}<li><strong>{{.Decision}}</strong> by {{.Moderator}} <span class="muted">{{date .DecidedAt}}</span>{{if .Reason}}<br>“{{.Reason}}”{{end}}</li>{{end}}
+    </ul>{{else}}<p class="muted">No decisions yet.</p>{{end}}
+  </section>
+
+  <section class="card">
+    <h2>Audit history</h2>
+    <ul class="timeline">
+      {{range $d.Audit}}<li><strong>{{.Action}}</strong> by {{.Actor}} <span class="muted">{{date .At}}</span><br><span class="muted">{{.Detail}}</span></li>{{end}}
+    </ul>
+  </section>
+</aside>
+</div>
+{{end}}

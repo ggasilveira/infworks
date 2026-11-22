@@ -1,0 +1,118 @@
+{{define "content"}}{{$d := .Data}}{{$e := $d.Errors}}
+<p>{{if $d.ID}}<a href="/staff/works/{{$d.ID}}">← Back to record #{{$d.ID}}</a>{{else}}<a href="/staff">← Dashboard</a>{{end}}</p>
+<h1>{{if $d.ID}}Edit record #{{$d.ID}} <span class="status s-{{$d.Work.Status}}">{{statusLabel $d.Work.Status}}</span>{{else}}Register academic work{{end}}</h1>
+
+{{if eq (print $d.Work.Status) "PUBLISHED"}}
+  <div class="alert info">This record is published. Edits stay public immediately and are recorded in the audit history (provisional MVP policy).</div>
+{{end}}
+{{if $d.Duplicate}}
+  <div class="alert" role="alert"><strong>Probable duplicate.</strong> A record with the same normalized title, year and first author already exists:
+  <a href="/staff/works/{{$d.Duplicate}}">record #{{$d.Duplicate}}</a>. The submission was blocked.</div>
+{{else if $e}}
+  <div class="alert" role="alert"><strong>Nothing was saved.</strong> Fix the {{len $e}} highlighted field{{if gt (len $e) 1}}s{{end}} below.
+  {{if $d.Uploaded}}Re-attach the PDF, because browsers do not keep files after an error.{{end}}</div>
+{{end}}
+
+<form method="post" action="{{if $d.ID}}/staff/works/{{$d.ID}}{{else}}/staff/works{{end}}" enctype="multipart/form-data" class="card work-form" novalidate>
+  <input type="hidden" name="version" value="{{$d.In.Version}}">
+  <p class="hint">Fields marked <span class="req">*</span> are required to <strong>submit for review</strong>. You can save a draft with any of them missing.</p>
+
+  <fieldset>
+    <legend>Bibliographic metadata</legend>
+    <div class="field {{if index $e "title"}}invalid{{end}}">
+      <label for="title">Title <span class="req">*</span></label>
+      <input id="title" name="title" value="{{$d.In.Title}}">
+      <small class="error">{{index $e "title"}}</small>
+    </div>
+    <div class="row">
+      <div class="field {{if index $e "type"}}invalid{{end}}">
+        <label for="type">Document type <span class="req">*</span></label>
+        <select id="type" name="type">
+          <option value="">Choose…</option>
+          {{range workTypes}}<option value="{{.}}" {{if eq (print .) $d.In.Type}}selected{{end}}>{{typeLabel .}}</option>{{end}}
+        </select>
+        <small class="error">{{index $e "type"}}</small>
+      </div>
+      <div class="field narrow {{if index $e "year"}}invalid{{end}}">
+        <label for="year">Year <span class="req">*</span></label>
+        <input id="year" name="year" inputmode="numeric" value="{{$d.In.Year}}" placeholder="YYYY">
+        <small class="error">{{index $e "year"}}</small>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field {{if index $e "authors"}}invalid{{end}}">
+        <label for="authors">Authors <span class="req">*</span> <span class="hint">one per line, first author first</span></label>
+        <textarea id="authors" name="authors" rows="3">{{$d.In.Authors}}</textarea>
+        <small class="error">{{index $e "authors"}}</small>
+      </div>
+      <div class="field {{if index $e "advisor"}}invalid{{end}}">
+        <label for="advisor">Advisor <span class="req">*</span> <span class="hint">primary advisor</span></label>
+        <input id="advisor" name="advisor" value="{{$d.In.Advisor}}">
+        <small class="error">{{index $e "advisor"}}</small>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field {{if index $e "areas"}}invalid{{end}}">
+        <label for="areas">Research areas <span class="req">*</span> <span class="hint">comma-separated</span></label>
+        <input id="areas" name="areas" value="{{$d.In.Areas}}">
+        <small class="error">{{index $e "areas"}}</small>
+      </div>
+      <div class="field {{if index $e "keywords"}}invalid{{end}}">
+        <label for="keywords">Keywords <span class="req">*</span> <span class="hint">comma-separated</span></label>
+        <input id="keywords" name="keywords" value="{{$d.In.Keywords}}">
+        <small class="error">{{index $e "keywords"}}</small>
+      </div>
+    </div>
+    <div class="field {{if index $e "abstract"}}invalid{{end}}">
+      <label for="abstract">Abstract <span class="req">*</span></label>
+      <textarea id="abstract" name="abstract" rows="6">{{$d.In.Abstract}}</textarea>
+      <small class="error">{{index $e "abstract"}}</small>
+    </div>
+  </fieldset>
+
+  <fieldset class="{{if index $e "source"}}invalid-set{{end}}">
+    <legend>Full-text source <span class="req">*</span> <span class="hint">a PDF, an external URL, or both</span></legend>
+    {{with index $e "source"}}<p class="error">{{.}}</p>{{end}}
+    {{if $d.Work.HasPDF}}
+      <p>Current PDF: <a href="/staff/works/{{$d.ID}}/document">{{$d.Work.PDFName}}</a>
+      <label class="check"><input type="checkbox" name="remove_pdf" {{if $d.In.RemovePDF}}checked{{end}}> Remove it</label></p>
+    {{end}}
+    <div class="row">
+      <div class="field {{if index $e "pdf"}}invalid{{end}}">
+        <label for="pdf">{{if $d.Work.HasPDF}}Replace PDF{{else}}Attach PDF{{end}} <span class="hint">PDF only, up to {{$d.MaxPDFMB}} MB</span></label>
+        <input id="pdf" name="pdf" type="file" accept="application/pdf,.pdf">
+        <small class="error">{{index $e "pdf"}}</small>
+      </div>
+      <div class="field {{if index $e "external_url"}}invalid{{end}}">
+        <label for="external_url">Authoritative external URL</label>
+        <input id="external_url" name="external_url" type="url" value="{{$d.In.ExternalURL}}" placeholder="https://…">
+        <small class="error">{{index $e "external_url"}}</small>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Optional</legend>
+    <div class="row">
+      <div class="field">
+        <label for="shelf_location">Physical shelf / location</label>
+        <input id="shelf_location" name="shelf_location" value="{{$d.In.ShelfLocation}}">
+      </div>
+      <div class="field">
+        <label for="contact_info">Institutional contact</label>
+        <input id="contact_info" name="contact_info" value="{{$d.In.ContactInfo}}">
+        <label class="check"><input type="checkbox" name="contact_public" {{if $d.In.ContactPublic}}checked{{end}}> Display publicly (permission was given)</label>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="actions sticky">
+    {{if eq (print $d.Work.Status) "PUBLISHED" "REJECTED"}}
+      <button name="action" value="save">Save changes</button>
+    {{else}}
+      <button name="action" value="draft">Save draft</button>
+    {{end}}
+    {{if $d.CanSubmit}}<button class="primary" name="action" value="submit">{{if eq (print $d.Work.Status) "REJECTED"}}Resubmit for review{{else}}Submit for review{{end}}</button>{{end}}
+  </div>
+</form>
+{{end}}

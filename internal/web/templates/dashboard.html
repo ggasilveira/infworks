@@ -1,0 +1,28 @@
+{{define "content"}}{{$d := .Data}}
+<div class="heading-row">
+  <h1>Staff dashboard</h1>
+  {{if isRole .User "LIBRARY_WORKER"}}<a class="button primary" href="/staff/works/new">+ New work</a>{{end}}
+</div>
+<nav class="tabs" aria-label="Filter by status">
+  <a href="/staff" {{if eq $d.Status ""}}aria-current="page"{{end}}>All</a>
+  {{range statuses}}<a href="/staff?status={{.}}" {{if eq . $d.Status}}aria-current="page"{{end}}>{{statusLabel .}}</a>{{end}}
+</nav>
+{{if $d.Rows}}
+<div class="table-wrap">
+<table class="records">
+  <thead><tr><th>#</th><th>Title</th><th>Status</th><th>Updated</th><th>Latest decision</th></tr></thead>
+  <tbody>
+  {{range $d.Rows}}
+    <tr>
+      <td>{{.Work.ID}}</td>
+      <td><a href="/staff/works/{{.Work.ID}}">{{orDash .Work.Title}}</a><br><span class="muted">{{first .Work.Authors}} · {{year .Work.Year}}</span></td>
+      <td><span class="status s-{{.Work.Status}}">{{statusLabel .Work.Status}}</span></td>
+      <td class="nowrap">{{date .Work.UpdatedAt}}</td>
+      <td>{{with .Decision}}<strong>{{.Decision}}</strong> by {{.Moderator}}<br><span class="muted">{{date .DecidedAt}}</span>{{if .Reason}}<br><em>“{{.Reason}}”</em>{{end}}{{else}}<span class="muted">—</span>{{end}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+{{else}}<div class="empty"><p>No records in this status.</p></div>{{end}}
+{{end}}

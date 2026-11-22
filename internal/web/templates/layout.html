@@ -1,0 +1,29 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · INF Works</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="/"><span class="mark">INF</span> Works <small>Knowledge base · UFRGS</small></a>
+    <nav>
+      <a href="/">Search</a>
+      {{if isRole .User "LIBRARY_WORKER"}}<a href="/staff">Dashboard</a><a href="/staff/works/new">New work</a>{{end}}
+      {{if isRole .User "COORDINATOR"}}<a href="/review">Review queue</a><a href="/staff">All records</a>{{end}}
+      {{if .User}}
+        <form method="post" action="/logout" class="inline"><span class="who">{{.User.DisplayName}}</span><button class="link">Sign out</button></form>
+      {{else}}<a href="/login">Staff sign in</a>{{end}}
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+{{if .Flash}}<p class="flash" role="status">{{.Flash}}</p>{{end}}
+{{template "content" .}}
+</main>
+<footer class="wrap foot">Prototype for INF/UFRGS Software Engineering · Stage 1 specification · demo data is fictional</footer>
+</body>
+</html>{{end}}

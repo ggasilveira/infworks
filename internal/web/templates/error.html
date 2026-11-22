@@ -1,0 +1,8 @@
+{{define "content"}}{{$d := .Data}}
+<div class="card error-page">
+  <p class="eyebrow">HTTP {{$d.Status}}</p>
+  <h1>{{$d.Heading}}</h1>
+  <p>{{$d.Message}}</p>
+  <p>{{if not .User}}<a href="/login">Sign in</a> · {{end}}<a href="/">Go to search</a></p>
+</div>
+{{end}}

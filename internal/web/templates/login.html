@@ -1,0 +1,23 @@
+{{define "content"}}{{$d := .Data}}
+<div class="narrow-page">
+<h1>Staff sign in</h1>
+<p class="lede">Public search needs no account. Sign in only to catalogue or moderate records.</p>
+<form method="post" action="/login" class="card stack">
+  {{if $d.Error}}<div class="alert" role="alert">{{$d.Error}}</div>{{end}}
+  <input type="hidden" name="next" value="{{$d.Next}}">
+  <div class="field"><label for="username">Username</label><input id="username" name="username" value="{{$d.Username}}" autocomplete="username" required></div>
+  <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+  <div class="actions"><button class="primary">Sign in</button></div>
+</form>
+<div class="card note">
+  <h2>Demo accounts</h2>
+  <p class="hint">This stands in for the UFRGS identity service, which is external to the prototype. The password is the same as the username.</p>
+  <table>
+    <tr><th>Username</th><th>Role</th></tr>
+    <tr><td><code>library</code></td><td>Library worker: create, edit and submit</td></tr>
+    <tr><td><code>coordinator</code>, <code>coordinator2</code></td><td>Coordinator: approve or reject</td></tr>
+    <tr><td><code>researcher</code></td><td>Researcher: no write access</td></tr>
+  </table>
+</div>
+</div>
+{{end}}

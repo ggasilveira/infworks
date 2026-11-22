@@ -1,0 +1,34 @@
+{{define "content"}}{{$d := .Data}}{{$w := $d.Work}}
+<p><a href="{{$d.Back}}">← Back to results</a></p>
+<article class="card details">
+  <p class="eyebrow">{{typeLabel $w.Type}} · {{$w.Year}}</p>
+  <h1>{{$w.Title}}</h1>
+
+  <div class="source">
+  {{if $w.HasPDF}}<a class="button primary" href="/works/{{$w.ID}}/document">Download PDF</a>{{end}}
+  {{if $w.ExternalURL}}<a class="button" href="{{$w.ExternalURL}}" rel="noopener" target="_blank">Full text in external repository ↗</a>{{end}}
+  {{if and (not $w.HasPDF) (not $w.ExternalURL)}}<span class="unavailable">Full text unavailable</span>{{end}}
+  </div>
+
+  <dl class="grid">
+    <dt>Author{{if gt (len $w.Authors) 1}}s{{end}}</dt><dd>{{join $w.Authors}}</dd>
+    <dt>Advisor</dt><dd>{{$w.Advisor}}</dd>
+    <dt>Research area{{if gt (len $w.Areas) 1}}s{{end}}</dt><dd>{{join $w.Areas}}</dd>
+    <dt>Keywords</dt><dd>{{range $w.Keywords}}<span class="tag">{{.}}</span>{{end}}</dd>
+    {{if $w.ShelfLocation}}<dt>Physical copy</dt><dd>{{$w.ShelfLocation}}</dd>{{end}}
+    {{if $w.ContactPublic}}<dt>Contact</dt><dd>{{$w.ContactInfo}}</dd>{{end}}
+  </dl>
+  <h2>Abstract</h2>
+  <p class="abstract">{{$w.Abstract}}</p>
+</article>
+
+<section class="similar">
+  <h2>Similar works</h2>
+  <p class="hint">Published works that share manually assigned keywords with this one.</p>
+  {{if $d.Similar}}
+  <ul class="plain">
+    {{range $d.Similar}}<li><a href="/works/{{.ID}}">{{.Title}}</a> <span class="muted">— {{first .Authors}}, {{.Year}}</span></li>{{end}}
+  </ul>
+  {{else}}<p class="empty small">No similar published works found.</p>{{end}}
+</section>
+{{end}}

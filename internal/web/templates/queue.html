@@ -1,0 +1,21 @@
+{{define "content"}}
+<h1>Moderation queue</h1>
+<p class="lede">Records submitted by library staff and waiting for a decision. Only approved records become publicly searchable.</p>
+{{if .Data}}
+<ul class="results">
+{{range .Data}}
+  <li class="result card">
+    <a class="title" href="/staff/works/{{.ID}}">{{.Title}}</a>
+    <dl class="meta">
+      <div><dt>Author</dt><dd>{{first .Authors}}</dd></div>
+      <div><dt>Year</dt><dd>{{year .Year}}</dd></div>
+      <div><dt>Type</dt><dd>{{typeLabel .Type}}</dd></div>
+      <div><dt>Advisor</dt><dd>{{.Advisor}}</dd></div>
+      <div><dt>Submitted</dt><dd>{{date .UpdatedAt}}</dd></div>
+    </dl>
+    <a class="button" href="/staff/works/{{.ID}}">Inspect and decide →</a>
+  </li>
+{{end}}
+</ul>
+{{else}}<div class="empty"><h2>Queue is empty</h2><p>No submissions are waiting for review.</p></div>{{end}}
+{{end}}
